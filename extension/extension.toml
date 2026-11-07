@@ -9,7 +9,7 @@ repository = "https://github.com/example/canc"
 
 [language_servers.canc]
 name = "Anchors"
-languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX"]
+languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX", "HTML", "CSS", "JSON"]
 
 [language_servers.canc.language_ids]
 "C" = "c"
@@ -20,3 +20,6 @@ languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TS
 "JavaScript" = "javascript"
 "TypeScript" = "typescript"
 "TSX" = "typescriptreact"
+"HTML" = "html"
+"CSS" = "css"
+"JSON" = "json"

@@ -48,7 +48,40 @@ fn extract_tree_sitter(lang: Lang, src: &str) -> Option<Vec<CommentPiece>> {
 /// For block comments, splits into per-line pieces (semantic tokens cannot
 /// span lines; multi-line tag bodies are out of scope in v1).
 pub fn strip_delimiter(node_text: &str, node_start: usize) -> Vec<CommentPiece> {
-    // Identify kind
+    // HTML comments <!-- -->
+    if node_text.starts_with("<!--") {
+        let mut pieces = Vec::new();
+        let mut offset = node_start;
+        for (idx, line) in node_text.split('\n').enumerate() {
+            let mut piece = line.to_string();
+            let mut piece_start = offset;
+            if idx == 0 {
+                let rest = &piece[4..];
+                let trimmed = rest.trim_start_matches(|c: char| c == ' ' || c == '\t');
+                let skipped = rest.len() - trimmed.len();
+                piece = trimmed.to_string();
+                piece_start = offset + 4 + skipped;
+            } else {
+                let t = piece.trim_start_matches(|c: char| c == ' ' || c == '\t');
+                let skipped = piece.len() - t.len();
+                piece = t.to_string();
+                piece_start = offset + skipped;
+            }
+            if idx == node_text.split('\n').count() - 1 {
+                let trimmed_end = piece.trim_end_matches(|c: char| c == ' ' || c == '\t' || c == '\r');
+                if trimmed_end.ends_with("-->") {
+                    piece = trimmed_end[..trimmed_end.len() - 3].to_string();
+                } else {
+                    piece = trimmed_end.to_string();
+                }
+            }
+            if !piece.is_empty() {
+                pieces.push(CommentPiece { body_start: piece_start, body: piece });
+            }
+            offset += line.len() + 1;
+        }
+        return pieces;
+    }
     if node_text.starts_with("//") {
         let delim_len = if node_text.starts_with("///") || node_text.starts_with("//!") { 3 } else { 2 };
         let body_off = node_start + delim_len;

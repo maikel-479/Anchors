@@ -10,6 +10,9 @@ pub enum Lang {
     JavaScript,
     TypeScript,
     Tsx,
+    Html,
+    Css,
+    Json,
     Unknown,
 }
 
@@ -24,6 +27,9 @@ impl Lang {
             "js" | "mjs" | "cjs" => Self::JavaScript,
             "ts" | "mts" | "cts" => Self::TypeScript,
             "tsx" => Self::Tsx,
+            "html" | "htm" | "xhtml" => Self::Html,
+            "css" => Self::Css,
+            "json" | "jsonc" => Self::Json,
             _ => Self::Unknown,
         }
     }
@@ -38,6 +44,9 @@ impl Lang {
             "javascript" => Self::JavaScript,
             "typescript" => Self::TypeScript,
             "typescriptreact" | "tsx" => Self::Tsx,
+            "html" => Self::Html,
+            "css" => Self::Css,
+            "json" | "jsonc" => Self::Json,
             _ => Self::Unknown,
         }
     }
@@ -59,6 +68,7 @@ impl Lang {
             Self::JavaScript => Some(tree_sitter_javascript::LANGUAGE.into()),
             Self::TypeScript => Some(tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into()),
             Self::Tsx => Some(tree_sitter_typescript::LANGUAGE_TSX.into()),
+            Self::Html | Self::Css | Self::Json => None,
             Self::Unknown => None,
         }
     }
@@ -67,6 +77,7 @@ impl Lang {
         match self {
             Self::Rust => "[(line_comment) (block_comment)] @comment",
             Self::Python | Self::C | Self::Cpp | Self::Go | Self::JavaScript | Self::TypeScript | Self::Tsx => "(comment) @comment",
+            Self::Html | Self::Css | Self::Json => "(comment) @comment",
             Self::Unknown => "(comment) @comment",
         }
     }
@@ -74,6 +85,9 @@ impl Lang {
     pub fn delimiter_table(&self) -> DelimTable {
         match self {
             Self::Python => DelimTable { line: &["#"], block: &[] },
+            Self::Html => DelimTable { line: &[], block: &[("<!--", "-->")] },
+            Self::Css => DelimTable { line: &[], block: &[("/*", "*/")] },
+            Self::Json => DelimTable { line: &["//"], block: &[("/*", "*/")] },
             _ => DelimTable { line: &["//"], block: &[("/*", "*/")] },
         }
     }
@@ -88,6 +102,9 @@ impl Lang {
             Self::JavaScript => "javascript",
             Self::TypeScript => "typescript",
             Self::Tsx => "typescriptreact",
+            Self::Html => "html",
+            Self::Css => "css",
+            Self::Json => "json",
             Self::Unknown => "unknown",
         }
     }
