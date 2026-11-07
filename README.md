@@ -76,6 +76,25 @@ later servers precedence on overlapping tokens:
 `initializationOptions` (optional): `configPath`, `globalConfigPath`,
 `checkWhileTyping`, `logLevel`.
 
+### Outline panel
+
+The server implements `textDocument/documentSymbol` (one symbol per anchor),
+so you can show anchors in the outline/breadcrumb panel. That panel defaults
+to tree-sitter `outline.scm` (`"document_symbols": "off"`); opt in per
+language to use the server instead (merged with clangd/rust-analyzer symbols):
+
+```json
+{
+  "languages": {
+    "C++": { "document_symbols": "on" },
+    "Rust": { "document_symbols": "on" }
+  }
+}
+```
+
+Without this, anchors are still available in `workspace/symbol` search
+(`Cmd+Shift+O`) and via the CLI.
+
 ## Config (`anchors.toml`)
 
 ```toml

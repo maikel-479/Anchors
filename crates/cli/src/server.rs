@@ -69,6 +69,7 @@ pub fn run() {
             },
         )),
         workspace_symbol_provider: Some(OneOf::Left(true)),
+        document_symbol_provider: Some(OneOf::Left(true)),
         ..Default::default()
     };
 
@@ -124,6 +125,18 @@ fn handle_request(conn: &Connection, server: &mut Server, req: Request) {
         });
         let symbols = workspace_symbols(&server.workspace_roots, &params.query, &server.config);
         let result = WorkspaceSymbolResponse::Flat(symbols);
+        let resp = lsp_server::Response::new_ok(req.id, result);
+        let _ = conn.sender.send(Message::Response(resp));
+        return;
+    }
+    if req.method == "textDocument/documentSymbol" {
+        let params: DocumentSymbolParams = serde_json::from_value(req.params).unwrap_or(DocumentSymbolParams {
+            text_document: TextDocumentIdentifier { uri: Url::parse("file:///tmp").unwrap() },
+            work_done_progress_params: Default::default(),
+            partial_result_params: Default::default(),
+        });
+        let symbols = document_symbols_for(server, &params.text_document.uri);
+        let result = DocumentSymbolResponse::Nested(symbols);
         let resp = lsp_server::Response::new_ok(req.id, result);
         let _ = conn.sender.send(Message::Response(resp));
         return;
@@ -299,6 +312,41 @@ fn semantic_tokens_for(server: &Server, uri: &Url) -> Vec<SemanticToken> {
         prev_col = r.col;
     }
     tokens
+}
+
+fn document_symbols_for(server: &Server, uri: &Url) -> Vec<DocumentSymbol> {
+    let Some(src) = server.docs.get(uri) else { return vec![] };
+    let lang = lang_for_doc(server, uri);
+    if lang == Lang::Unknown {
+        return vec![];
+    }
+    let result = scan(lang, src, &server.config);
+    let mut out = Vec::new();
+    for anchor in result.anchors {
+        let (_, _, sym) = server.config.lookup_tag(&anchor.tag).unwrap_or((String::new(), Severity::Off, false));
+        if !sym {
+            continue;
+        }
+        let (line_s, char_s) = comment_annotations_core::scan::byte_to_lsp(src, anchor.range.start);
+        let (line_e, char_e) = comment_annotations_core::scan::byte_to_lsp(src, anchor.range.end);
+        let range = Range {
+            start: Position { line: line_s, character: char_s },
+            end: Position { line: line_e, character: char_e },
+        };
+        out.push(DocumentSymbol {
+            name: format!("{}: {}", anchor.tag, anchor.text),
+            detail: Some(anchor.tag.clone()),
+            kind: SymbolKind::KEY,
+            tags: None,
+            deprecated: None,
+            range,
+            selection_range: range,
+            children: None,
+        });
+    }
+    // Include inline spans as emphasis symbols? Keep to anchors only so
+    // outline stays a tag list; users can still jump to *main* via tokens.
+    out
 }
 
 fn workspace_symbols(roots: &[PathBuf], query: &str, cfg: &Config) -> Vec<SymbolInformation> {
