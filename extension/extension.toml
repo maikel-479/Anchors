@@ -8,8 +8,8 @@ license = "MIT"
 repository = "https://github.com/example/canc"
 
 [grammars.comment]
-repository = "https://github.com/thedadams/tree-sitter-comment"
-rev = "d6c715fa37c6086030875ae20adaec399441a45c"
+repository = "file:///home/maikel/Projects/zed-projects/anchors/extension/grammars/comment"
+rev = "HEAD"
 
 [language_servers.canc]
 name = "Anchors"
