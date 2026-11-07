@@ -62,6 +62,13 @@ etc.) when they sit on an otherwise tag-free line.
 the two files in sync. Tags are visible even with no rules (the `keyword`
 default); rules only refine color/weight per class.
 
+> [!NOTE]
+> You do **not** need to install the separate *Comments Highlighter*
+> (`comment` / `thedadams/zed-comment`) extension — Anchors already bundles
+> its `comment` injection language (`extension/languages/comment/` +
+> `tree-sitter-comment` grammar), so tag lines are tree-sitter-highlighted
+> out of the box.
+
 If you customised your server list, keep this server **last** — Zed gives
 later servers precedence on overlapping tokens:
 
