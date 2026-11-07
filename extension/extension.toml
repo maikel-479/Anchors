@@ -9,7 +9,7 @@ repository = "https://github.com/example/canc"
 
 [grammars.comment]
 repository = "file:///home/maikel/Projects/zed-projects/anchors/grammars/comment"
-rev = "HEAD"
+rev = "main"
 
 [language_servers.canc]
 name = "Anchors"
