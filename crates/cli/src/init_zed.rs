@@ -44,10 +44,14 @@ pub fn generate_rules(cfg: &Config) -> Vec<serde_json::Value> {
         "token_modifiers": ["strong"],
         "font_weight": "bold"
     }));
+    // Italic alone is invisible when the theme already italicizes comments,
+    // so emphasis also gets an underline — remove it if your theme's comments
+    // are not italic and the underline feels noisy.
     rules.push(serde_json::json!({
         "token_type": "comment",
         "token_modifiers": ["emphasis"],
-        "font_style": "italic"
+        "font_style": "italic",
+        "underline": true
     }));
     rules.push(serde_json::json!({
         "token_type": "comment",

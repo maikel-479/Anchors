@@ -7,6 +7,10 @@ description = "Comment tags and inline emphasis, styled by you."
 license = "MIT"
 repository = "https://github.com/example/canc"
 
+[grammars.comment]
+repository = "https://github.com/thedadams/tree-sitter-comment"
+rev = "d6c715fa37c6086030875ae20adaec399441a45c"
+
 [language_servers.canc]
 name = "Anchors"
 languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX", "HTML", "CSS", "JSON"]
