@@ -1,17 +1,17 @@
-id = "comment-annotations"
+id = "canc"
 name = "Comment Annotations"
 version = "0.1.0"
 schema_version = 1
-authors = ["comment-annotations contributors"]
+authors = ["canc contributors"]
 description = "Comment tags and inline emphasis, styled by you."
 license = "MIT"
-repository = "https://github.com/example/comment-annotations-zed"
+repository = "https://github.com/example/canc"
 
-[language_servers.comment-annotations]
+[language_servers.canc]
 name = "Comment Annotations"
 languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX"]
 
-[language_servers.comment-annotations.language_ids]
+[language_servers.canc.language_ids]
 "C" = "c"
 "C++" = "cpp"
 "Rust" = "rust"

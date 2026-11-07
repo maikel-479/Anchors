@@ -16,23 +16,23 @@ grammar.
 cargo build --release
 ```
 
-Binary: `target/release/comment-annotations`
+Binary: `target/release/canc`
 
 ## CLI
 
 ```text
-comment-annotations anchors [PATH...] [--format text|json|ndjson] [--tag NOTE,FIXME] [--deny FIXME,BUG] [--spans] [--no-ignore]
-comment-annotations serve          # LSP over stdio
-comment-annotations init-zed       # print semantic_token_rules for Zed settings
-comment-annotations config check [PATH]
-comment-annotations config print [PATH]
+canc anchors [PATH...] [--format text|json|ndjson] [--tag NOTE,FIXME] [--deny FIXME,BUG] [--spans] [--no-ignore]
+canc serve          # LSP over stdio
+canc init-zed       # print semantic_token_rules for Zed settings
+canc config check [PATH]
+canc config print [PATH]
 ```
 
 Exit codes for `anchors`: `0` clean, `1` findings under `--deny`,
 `2` unreadable input or invalid config.
 
 ```text
-$ comment-annotations anchors main.cpp
+$ canc anchors main.cpp
 main.cpp:3:4  NOTE  This is how you start a c++ file
 ```
 
@@ -53,7 +53,7 @@ etc.) when they sit on an otherwise tag-free line.
 {
   "semantic_tokens": "combined",
   "global_lsp_settings": {
-    "semantic_token_rules": [ ... from `comment-annotations init-zed` ... ]
+    "semantic_token_rules": [ ... from `canc init-zed` ... ]
   }
 }
 ```
@@ -68,7 +68,7 @@ later servers precedence on overlapping tokens:
 ```json
 {
   "languages": {
-    "C++": { "language_servers": ["clangd", "comment-annotations", "..."] }
+    "C++": { "language_servers": ["clangd", "canc", "..."] }
   }
 }
 ```
@@ -99,12 +99,12 @@ paths = ["vendor/**", "third_party/**"]
 enabled = false
 ```
 
-Global path: `~/.config/comment-annotations/anchors.toml`.
+Global path: `~/.config/canc/anchors.toml`.
 Project config is found by walking up from each file.
 
 ## Tests
 
 ```sh
 cargo test
-comment-annotations anchors tests/golden --format json
+canc anchors tests/golden --format json
 ```

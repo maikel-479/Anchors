@@ -1,8 +1,8 @@
 # Helix languages.toml snippet
-# [[language-server.comment-annotations]]
-# command = "comment-annotations"
+# [[language-server.canc]]
+# command = "canc"
 # args = ["serve"]
 #
 # [[language]]
 # name = "c"
-# language-servers = ["comment-annotations"]
+# language-servers = ["canc"]

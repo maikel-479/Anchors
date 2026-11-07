@@ -234,7 +234,7 @@ impl Config {
 }
 
 pub fn default_global_config_path() -> Option<PathBuf> {
-    dirs_config().map(|d| d.join("comment-annotations").join("anchors.toml"))
+    dirs_config().map(|d| d.join("canc").join("anchors.toml"))
 }
 
 fn dirs_config() -> Option<PathBuf> {

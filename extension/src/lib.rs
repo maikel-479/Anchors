@@ -38,13 +38,13 @@ impl CommentAnnotationsExtension {
         worktree: &Worktree,
     ) -> zed::Result<String> {
         // Step 0: honour explicit user override from Zed LSP settings:
-        //   { "lsp": { "comment-annotations": { "binary": { "path": "/path/to/binary" } } } }
+        //   { "lsp": { "canc": { "binary": { "path": "/path/to/binary" } } } }
         if let Ok(lsp_settings) =
             zed::settings::LspSettings::for_worktree(language_server_id.as_ref(), worktree)
         {
             if let Some(binary) = lsp_settings.binary {
                 if let Some(path) = binary.path {
-                    eprintln!("comment-annotations: using user-configured binary: {path}");
+                    eprintln!("canc: using user-configured binary: {path}");
                     return Ok(path);
                 }
             }
@@ -56,7 +56,7 @@ impl CommentAnnotationsExtension {
             }
             self.cached_binary_path = None;
         }
-        if let Some(path) = worktree.which("comment-annotations") {
+        if let Some(path) = worktree.which("canc") {
             self.cached_binary_path = Some(path.clone());
             return Ok(path);
         }
@@ -74,8 +74,8 @@ impl CommentAnnotationsExtension {
             (zed::Os::Windows, zed::Architecture::Aarch64) => ("aarch64-pc-windows-msvc", ".exe"),
             _ => {
                 return Err(format!(
-                    "comment-annotations has no pre-built binary for {os:?}/{arch:?}. \
-                     Build from source and put `comment-annotations` on PATH."
+                    "canc has no pre-built binary for {os:?}/{arch:?}. \
+                     Build from source and put `canc` on PATH."
                 ))
             }
         };
@@ -84,16 +84,16 @@ impl CommentAnnotationsExtension {
         } else {
             (".zip", zed::DownloadedFileType::Zip)
         };
-        let asset_name = format!("comment-annotations-{target}{archive_ext}");
-        let version_dir = format!("bin/comment-annotations-{target}-v{VERSION}");
-        let binary_path = format!("{version_dir}/comment-annotations{exe_suffix}");
+        let asset_name = format!("canc-{target}{archive_ext}");
+        let version_dir = format!("bin/canc-{target}-v{VERSION}");
+        let binary_path = format!("{version_dir}/canc{exe_suffix}");
         if !std::path::Path::new(&binary_path).exists() {
             let release = zed::github_release_by_tag_name("example/comment-annotations", &format!("v{VERSION}"))
                 .map_err(|e| {
                     format!(
-                        "comment-annotations binary not found on PATH and no release v{VERSION} is published yet.\
-                         ~/.local/bin/comment-annotations is not on Zed's PATH.\
-                         Either put it on PATH or set \"lsp\": {{ \"comment-annotations\": {{ \"binary\": {{ \"path\": \"/home/maikel/.local/bin/comment-annotations\" }} }} }} ({e})"
+                        "canc binary not found on PATH and no release v{VERSION} is published yet.\
+                         ~/.local/bin/canc is not on Zed's PATH.\
+                         Either put it on PATH or set \"lsp\": {{ \"canc\": {{ \"binary\": {{ \"path\": \"/home/maikel/.local/bin/canc\" }} }} }} ({e})"
                     )
                 })?;
             let asset = release

@@ -1,6 +1,6 @@
 {
-  "comment-annotations": {
-    "command": "comment-annotations",
+  "canc": {
+    "command": "canc",
     "args": ["serve"]
   }
 }

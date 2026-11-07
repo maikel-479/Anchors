@@ -16,7 +16,7 @@ struct Server {
 }
 
 pub fn run() {
-    eprintln!("comment-annotations: starting LSP server");
+    eprintln!("canc: starting LSP server");
     let (connection, io_threads) = Connection::stdio();
     let (id, init_params_value) = connection.initialize_start().unwrap();
     let init_params: InitializeParams = serde_json::from_value(init_params_value).unwrap_or(InitializeParams {
@@ -33,7 +33,7 @@ pub fn run() {
                 }
             }
             if let Some(log) = obj.get("logLevel").and_then(|v| v.as_str()) {
-                eprintln!("comment-annotations: logLevel={log}");
+                eprintln!("canc: logLevel={log}");
             }
         }
     }
@@ -75,7 +75,7 @@ pub fn run() {
     let caps = InitializeResult {
         capabilities: server_caps,
         server_info: Some(ServerInfo {
-            name: "comment-annotations".into(),
+            name: "canc".into(),
             version: Some(env!("CARGO_PKG_VERSION").into()),
             ..Default::default()
         }),
@@ -232,7 +232,7 @@ fn publish_diagnostics(conn: &Connection, server: &Server, uri: &Url) {
             },
             severity: Some(severity),
             code: Some(NumberOrString::String(anchor.tag.clone())),
-            source: Some("comment-annotations".into()),
+            source: Some("canc".into()),
             message: msg,
             ..Default::default()
         });

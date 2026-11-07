@@ -6,7 +6,7 @@ mod init_zed;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "comment-annotations", version, about = "Comment tags and inline emphasis as structured anchors")]
+#[command(name = "canc", version, about = "Comment tags and inline emphasis as structured anchors")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
