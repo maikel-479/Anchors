@@ -23,6 +23,11 @@ struct Server {
     docs: HashMap<Url, String>,
     doc_paths: HashMap<Url, PathBuf>,
     workspace_roots: Vec<PathBuf>,
+    /// Counter for `workspace/semanticTokens/refresh` request ids this
+    /// server sends to the client. Formatted as `canc-refresh-<n>` so
+    /// these ids never collide with numeric ids the client uses for its
+    /// own requests on the same connection.
+    next_refresh_id: u32,
 }
 
 /// Build the modifier legend: every configured tag class in config order
@@ -200,6 +205,7 @@ pub fn run() {
         docs: HashMap::new(),
         doc_paths: HashMap::new(),
         workspace_roots,
+        next_refresh_id: 0,
     };
 
     for msg in connection.receiver.iter() {
@@ -314,6 +320,7 @@ fn handle_notification(conn: &Connection, server: &mut Server, notif: lsp_server
         }
         server.docs.insert(uri.clone(), params.text_document.text);
         publish_diagnostics(conn, server, &uri);
+        send_semantic_refresh(conn, server);
         return;
     }
     if notif.method == "textDocument/didChange" {
@@ -354,6 +361,7 @@ fn handle_notification(conn: &Connection, server: &mut Server, notif: lsp_server
         if let Some(text) = updated {
             server.docs.insert(uri.clone(), text);
             publish_diagnostics(conn, server, &uri);
+            send_semantic_refresh(conn, server);
         }
         return;
     }
@@ -378,6 +386,26 @@ fn handle_notification(conn: &Connection, server: &mut Server, notif: lsp_server
         }
         return;
     }
+}
+
+/// Send a `workspace/semanticTokens/refresh` request to the client so it
+/// re-requests semantic tokens instead of leaving highlights anchored to
+/// pre-edit positions. Per the LSP spec a server MAY send this at any
+/// time; it is sent once per didOpen/didChange notification that changed
+/// text (not once per content-change chunk). Some clients may reply with
+/// a MethodNotFound error — that Response is tolerated silently by the
+/// main loop's `Message::Response(_) => {}` arm.
+/// Request ids use a string namespace so they cannot collide with the
+/// numeric ids clients use for their own requests on the same pipe.
+fn send_semantic_refresh(conn: &Connection, server: &mut Server) {
+    server.next_refresh_id = server.next_refresh_id.wrapping_add(1);
+    let id = lsp_server::RequestId::from(format!("canc-refresh-{}", server.next_refresh_id));
+    let req = lsp_server::Request {
+        id,
+        method: "workspace/semanticTokens/refresh".into(),
+        params: serde_json::Value::Null,
+    };
+    let _ = conn.sender.send(Message::Request(req));
 }
 
 fn lang_for_doc(server: &Server, uri: &Url) -> Lang {
