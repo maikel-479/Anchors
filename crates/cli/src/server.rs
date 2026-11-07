@@ -382,9 +382,18 @@ fn document_symbols_for(server: &Server, uri: &Url) -> Vec<DocumentSymbol> {
             start: Position { line: line_s, character: char_s },
             end: Position { line: line_e, character: char_e },
         };
+        // Name is the bare tag (with user) so Zed's `highlights_from_buffer`
+        // finds it verbatim in the buffer and applies combined
+        // (tree-sitter + semantic token) highlights in the outline.
+        // A "TAG: text" name never matches verbatim for delimited tags
+        // (=NOTE=: vs NOTE:), so rows rendered grey (C++ case).
+        let name = match &anchor.meta {
+            Some(m) => format!("{}({})", anchor.tag, m),
+            None => anchor.tag.clone(),
+        };
         out.push(DocumentSymbol {
-            name: format!("{}: {}", anchor.tag, anchor.text),
-            detail: Some(anchor.tag.clone()),
+            name,
+            detail: Some(anchor.text.clone()),
             kind: SymbolKind::KEY,
             tags: None,
             deprecated: None,
