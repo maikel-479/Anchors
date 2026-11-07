@@ -4,15 +4,25 @@ version = "0.1.0"
 schema_version = 1
 authors = ["maikel"]
 description = "Comment tags and inline emphasis, styled by you."
-license = "MIT"
 repository = "https://github.com/example/canc"
+
+# Permit the git-release download fallback used by the language-server
+# resolver. Release assets redirect to these hosts.
+[[capabilities]]
+kind = "download_file"
+host = "github.com"
+path = ["*", "releases", "download", "**"]
+
+[[capabilities]]
+kind = "download_file"
+host = "objects.githubusercontent.com"
+path = ["**"]
 
 [grammars.comment]
 repository = "file:///home/maikel/Projects/zed-projects/anchors/grammars/comment"
 rev = "main"
 
 [language_servers.canc]
-name = "Anchors"
 languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX", "HTML", "CSS", "JSON"]
 
 [language_servers.canc.language_ids]

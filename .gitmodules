@@ -1,0 +1,3 @@
+[submodule "grammars/comment"]
+	path = grammars/comment
+	url = file:///home/maikel/Projects/zed-projects/anchors/grammars/comment

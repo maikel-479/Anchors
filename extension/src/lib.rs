@@ -60,9 +60,10 @@ impl CommentAnnotationsExtension {
             self.cached_binary_path = Some(path.clone());
             return Ok(path);
         }
-        // Download fallback: use the pinned release asset. Adjust owner/repo
-        // and version when publishing. The (os, arch) mapping follows
+        // Download fallback: use the pinned release asset. Adjust REPO and
+        // VERSION when publishing. The (os, arch) mapping follows
         // codebook-zed / zed-todo-highlight (musl for Linux).
+        const REPO: &str = "example/canc"; // TODO: real owner/repo on publish
         const VERSION: &str = "0.1.0";
         let (os, arch) = zed::current_platform();
         let (target, exe_suffix) = match (os, arch) {
@@ -88,7 +89,7 @@ impl CommentAnnotationsExtension {
         let version_dir = format!("bin/canc-{target}-v{VERSION}");
         let binary_path = format!("{version_dir}/canc{exe_suffix}");
         if !std::path::Path::new(&binary_path).exists() {
-            let release = zed::github_release_by_tag_name("example/comment-annotations", &format!("v{VERSION}"))
+            let release = zed::github_release_by_tag_name(REPO, &format!("v{VERSION}"))
                 .map_err(|e| {
                     format!(
                         "canc binary not found on PATH and no release v{VERSION} is published yet.\
@@ -101,8 +102,15 @@ impl CommentAnnotationsExtension {
                 .iter()
                 .find(|a| a.name == asset_name)
                 .ok_or_else(|| format!("Release asset {asset_name} not found"))?;
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::Downloading,
+            );
             zed::download_file(&asset.download_url, &version_dir, file_type)
                 .map_err(|e| format!("Download failed: {e}"))?;
+            zed::make_file_executable(&binary_path)
+                .map_err(|e| format!("Failed to make {binary_path} executable: {e}"))?;
+            zed::set_language_server_installation_status(language_server_id, &zed::LanguageServerInstallationStatus::None);
         }
         self.cached_binary_path = Some(binary_path.clone());
         Ok(binary_path)

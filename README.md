@@ -7,8 +7,8 @@ and **workspace symbols** (jump-to) via one LSP server, plus a CLI for CI
 and coding agents.
 
 The server attaches to languages Zed already has (`C`, `C++`, `Rust`,
-`Python`, `Go`, `JavaScript`, `TypeScript`, `TSX`) — it never needs its own
-grammar.
+`Python`, `Go`, `JavaScript`, `TypeScript`, `TSX` via tree-sitter; `HTML`,
+`CSS`, `JSON` via the delimiter fallback) — it never needs its own grammar.
 
 ## Build
 
@@ -63,11 +63,13 @@ the two files in sync. Tags are visible even with no rules (the `keyword`
 default); rules only refine color/weight per class.
 
 > [!NOTE]
-> You do **not** need to install the separate *Comments Highlighter*
-> (`comment` / `thedadams/zed-comment`) extension — Anchors already bundles
-> its `comment` injection language (`extension/languages/comment/` +
-> `tree-sitter-comment` grammar), so tag lines are tree-sitter-highlighted
-> out of the box.
+> The bundled `comment` language (`extension/languages/comment/` + a small
+> `tree-sitter-comment` grammar) is a **bonus only**: Zed extensions can't
+> define injections into built-in languages, so it fires only where a host
+> language already injects a language named `comment`. Your primary
+> highlighter is the LSP semantic-token path below, which needs no grammar.
+> You do **not** need the separate *Comments Highlighter*
+> (`thedadams/zed-comment`) extension.
 
 If you customised your server list, keep this server **last** — Zed gives
 later servers precedence on overlapping tokens:
@@ -80,8 +82,12 @@ later servers precedence on overlapping tokens:
 }
 ```
 
-`initializationOptions` (optional): `configPath`, `globalConfigPath`,
-`checkWhileTyping`, `logLevel`.
+`initializationOptions` (optional): `configPath` (explicit config, used
+when a document has no on-disk project config),
+`globalConfigPath` (overrides the standard `~/.config/canc/anchors.toml`
+lookup), `logLevel`. Project `anchors.toml` files are always discovered by
+walking up from each file and layered on top of the global config; changing
+one triggers a refresh on the next `didChangeConfiguration`.
 
 ### Outline panel
 
@@ -114,8 +120,8 @@ inline       = "all"         # "all" | "tagged" | "off"
 emphasis     = "commonmark"  # or "star-bold"
 unknown_tags = "ignore"      # or "highlight"
 
-[[tags]]
-name = "NOTE"
+[[tags]]                     # additions/overrides, merged by name with
+name = "NOTE"                # the built-in NOTE/TODO/FIXME/BUG/HACK set
 class = "note"               # semantic-token modifier
 severity = "off"             # off | hint | information | warning | error
 symbol = true
