@@ -163,9 +163,35 @@ fn handle_notification(conn: &Connection, server: &mut Server, notif: lsp_server
             text_document: VersionedTextDocumentIdentifier { uri: Url::parse("file:///tmp").unwrap(), version: 0 },
             content_changes: vec![],
         });
-        if let Some(last) = params.content_changes.last() {
-            server.docs.insert(params.text_document.uri.clone(), last.text.clone());
-            publish_diagnostics(conn, server, &params.text_document.uri);
+        let uri = params.text_document.uri.clone();
+        // Support both FULL (no range) and incremental (range) changes.
+        // Zed may send incremental edits even when FULL is advertised
+        // after reindents; blindly replacing the doc with last.text
+        // corrupts all subsequent offsets ("affected by indents").
+        let mut updated: Option<String> = server.docs.get(&uri).cloned();
+        if let Some(mut text) = updated.clone() {
+            for change in &params.content_changes {
+                if let Some(range) = change.range {
+                    let start = lsp_pos_to_byte(&text, range.start.line, range.start.character);
+                    let end = lsp_pos_to_byte(&text, range.end.line, range.end.character);
+                    let start = start.min(text.len());
+                    let end = end.min(text.len());
+                    if start <= end {
+                        text = format!("{}{}{}", &text[..start], change.text, &text[end..]);
+                    } else {
+                        text = change.text.clone();
+                    }
+                } else {
+                    text = change.text.clone();
+                }
+            }
+            updated = Some(text);
+        } else if let Some(last) = params.content_changes.last() {
+            updated = Some(last.text.clone());
+        }
+        if let Some(text) = updated {
+            server.docs.insert(uri.clone(), text);
+            publish_diagnostics(conn, server, &uri);
         }
         return;
     }
@@ -259,6 +285,29 @@ fn publish_diagnostics(conn: &Connection, server: &Server, uri: &Url) {
         }).unwrap(),
     };
     let _ = conn.sender.send(Message::Notification(notif));
+}
+
+fn lsp_pos_to_byte(text: &str, line: u32, character: u32) -> usize {
+    let mut current_line = 0u32;
+    let mut line_start = 0usize;
+    for (i, b) in text.bytes().enumerate() {
+        if current_line == line {
+            let line_text = &text[line_start..];
+            let mut utf16_col = 0u32;
+            for (j, ch) in line_text.char_indices() {
+                if utf16_col >= character {
+                    return line_start + j;
+                }
+                utf16_col += ch.len_utf16() as u32;
+            }
+            return line_start + line_text.len();
+        }
+        if b == b'\n' {
+            current_line += 1;
+            line_start = i + 1;
+        }
+    }
+    text.len()
 }
 
 fn semantic_tokens_for(server: &Server, uri: &Url) -> Vec<SemanticToken> {

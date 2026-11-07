@@ -108,6 +108,47 @@ impl Lang {
             Self::Unknown => "unknown",
         }
     }
+
+    /// Single source of truth for supported languages.
+    /// `extension.toml` and `anchors.toml` docs are generated/checked against this.
+    pub fn all() -> &'static [Lang] {
+        &[
+            Self::C,
+            Self::Cpp,
+            Self::Rust,
+            Self::Python,
+            Self::Go,
+            Self::JavaScript,
+            Self::TypeScript,
+            Self::Tsx,
+            Self::Html,
+            Self::Css,
+            Self::Json,
+        ]
+    }
+
+    /// Zed language name (as in `extension.toml` `languages`).
+    pub fn zed_name(&self) -> &'static str {
+        match self {
+            Self::C => "C",
+            Self::Cpp => "C++",
+            Self::Rust => "Rust",
+            Self::Python => "Python",
+            Self::Go => "Go",
+            Self::JavaScript => "JavaScript",
+            Self::TypeScript => "TypeScript",
+            Self::Tsx => "TSX",
+            Self::Html => "HTML",
+            Self::Css => "CSS",
+            Self::Json => "JSON",
+            Self::Unknown => "Unknown",
+        }
+    }
+
+    /// Whether this language uses tree-sitter or the delimiter fallback.
+    pub fn uses_tree_sitter(&self) -> bool {
+        self.ts_language().is_some()
+    }
 }
 
 pub struct DelimTable {

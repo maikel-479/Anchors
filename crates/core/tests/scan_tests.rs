@@ -141,3 +141,14 @@ fn empty_and_no_comments() {
     assert!(r.anchors.is_empty());
     assert!(r.spans.is_empty());
 }
+
+#[test]
+fn extension_languages_match_core_table() {
+    let manifest = std::fs::read_to_string("../../extension/extension.toml").unwrap();
+    for lang in Lang::all() {
+        let zed = lang.zed_name();
+        assert!(manifest.contains(&format!("\"{zed}\"")), "extension.toml missing language {zed}");
+        let lsp = lang.name();
+        assert!(manifest.contains(&format!("\"{zed}\" = \"{lsp}\"")), "extension.toml missing language_id {zed} -> {lsp}");
+    }
+}
