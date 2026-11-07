@@ -1,0 +1,8 @@
+-- Neovim LSP setup for comment-annotations
+-- vim.lsp.config or lspconfig equivalent:
+--
+-- require('lspconfig').comment_annotations.setup({
+--   cmd = { 'comment-annotations', 'serve' },
+--   filetypes = { 'c', 'cpp', 'rust', 'python', 'go', 'javascript', 'typescript' },
+--   init_options = { configPath = vim.fn.expand('~/.config/comment-annotations/comment-annotations.toml') },
+-- })

@@ -1,0 +1,43 @@
+version = 1
+
+[syntax]
+conventional = true
+delimited = true
+inline = "all"
+emphasis = "commonmark"
+unknown_tags = "ignore"
+
+[[tags]]
+name = "NOTE"
+class = "note"
+severity = "off"
+symbol = true
+
+[[tags]]
+name = "TODO"
+class = "todo"
+severity = "hint"
+symbol = true
+
+[[tags]]
+name = "FIXME"
+aliases = ["XXX"]
+class = "fixme"
+severity = "information"
+symbol = true
+
+[[tags]]
+name = "BUG"
+class = "bug"
+severity = "warning"
+symbol = true
+
+[[tags]]
+name = "HACK"
+class = "hack"
+severity = "information"
+symbol = true
+
+[[overrides]]
+paths = ["vendor/**", "third_party/**"]
+enabled = false

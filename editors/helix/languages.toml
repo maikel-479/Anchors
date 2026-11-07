@@ -1,0 +1,8 @@
+# Helix languages.toml snippet
+# [[language-server.comment-annotations]]
+# command = "comment-annotations"
+# args = ["serve"]
+#
+# [[language]]
+# name = "c"
+# language-servers = ["comment-annotations"]

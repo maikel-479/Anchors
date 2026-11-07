@@ -1,0 +1,6 @@
+{
+  "comment-annotations": {
+    "command": "comment-annotations",
+    "args": ["serve"]
+  }
+}

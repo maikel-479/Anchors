@@ -1,0 +1,13 @@
+[
+  {
+    "file": "tests/golden/worked_example.cpp",
+    "line": 3,
+    "column": 4,
+    "end_column": 10,
+    "tag": "NOTE",
+    "class": "note",
+    "form": "delimited",
+    "meta": null,
+    "text": "This is how you start a c++ file"
+  }
+]

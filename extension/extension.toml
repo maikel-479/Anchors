@@ -1,0 +1,22 @@
+id = "comment-annotations"
+name = "Comment Annotations"
+version = "0.1.0"
+schema_version = 1
+authors = ["comment-annotations contributors"]
+description = "Comment tags and inline emphasis, styled by you."
+license = "MIT"
+repository = "https://github.com/example/comment-annotations-zed"
+
+[language_servers.comment-annotations]
+name = "Comment Annotations"
+languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX"]
+
+[language_servers.comment-annotations.language_ids]
+"C" = "c"
+"C++" = "cpp"
+"Rust" = "rust"
+"Python" = "python"
+"Go" = "go"
+"JavaScript" = "javascript"
+"TypeScript" = "typescript"
+"TSX" = "typescriptreact"
