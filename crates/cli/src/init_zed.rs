@@ -1,4 +1,4 @@
-use comment_annotations_core::Config;
+use canc_core::Config;
 use std::path::Path;
 
 pub fn run(config_path: Option<String>) -> i32 {

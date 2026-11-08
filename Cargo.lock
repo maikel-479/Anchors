@@ -78,6 +78,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "canc"
+version = "0.1.0"
+dependencies = [
+ "canc-core",
+ "clap",
+ "globset",
+ "ignore",
+ "lsp-server",
+ "lsp-types",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
+name = "canc-core"
+version = "0.1.0"
+dependencies = [
+ "glob",
+ "ignore",
+ "regex",
+ "serde",
+ "serde_json",
+ "streaming-iterator",
+ "toml",
+ "tree-sitter",
+ "tree-sitter-c",
+ "tree-sitter-cpp",
+ "tree-sitter-go",
+ "tree-sitter-javascript",
+ "tree-sitter-python",
+ "tree-sitter-rust",
+ "tree-sitter-typescript",
+]
+
+[[package]]
 name = "cc"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -132,42 +168,6 @@ name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
-
-[[package]]
-name = "comment-annotations-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "comment-annotations-core",
- "globset",
- "ignore",
- "lsp-server",
- "lsp-types",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
-name = "comment-annotations-core"
-version = "0.1.0"
-dependencies = [
- "glob",
- "ignore",
- "regex",
- "serde",
- "serde_json",
- "streaming-iterator",
- "toml",
- "tree-sitter",
- "tree-sitter-c",
- "tree-sitter-cpp",
- "tree-sitter-go",
- "tree-sitter-javascript",
- "tree-sitter-python",
- "tree-sitter-rust",
- "tree-sitter-typescript",
-]
 
 [[package]]
 name = "crossbeam-channel"

@@ -1,4 +1,4 @@
-use comment_annotations_core::{Config, Lang, scan, SpanKind, TagForm};
+use canc_core::{Config, Lang, scan, SpanKind, TagForm};
 
 #[test]
 fn worked_example_cpp() {
@@ -127,11 +127,11 @@ fn config_defaults_match_plan() {
     assert_eq!(cfg.syntax.conventional, true);
     assert_eq!(cfg.syntax.delimited, true);
     let note = cfg.lookup_tag("NOTE").unwrap();
-    assert_eq!(note.1, comment_annotations_core::Severity::Off);
+    assert_eq!(note.1, canc_core::Severity::Off);
     let todo = cfg.lookup_tag("TODO").unwrap();
-    assert_eq!(todo.1, comment_annotations_core::Severity::Hint);
+    assert_eq!(todo.1, canc_core::Severity::Hint);
     let fixme = cfg.lookup_tag("FIXME").unwrap();
-    assert_eq!(fixme.1, comment_annotations_core::Severity::Information);
+    assert_eq!(fixme.1, canc_core::Severity::Information);
 }
 
 #[test]

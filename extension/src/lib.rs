@@ -64,7 +64,7 @@ impl CommentAnnotationsExtension {
         // Cargo-install fallback: if `cargo` is on PATH, try installing the
         // server binary from crates.io. This makes local use work before any
         // GitHub release exists — no downloads, no archives, just
-        // `cargo install comment-annotations-cli`.
+        // `cargo install canc`.
         if worktree.which("cargo").is_some() {
             zed::set_language_server_installation_status(
                 language_server_id,
@@ -72,7 +72,7 @@ impl CommentAnnotationsExtension {
             );
             let install = zed::process::Command::new("cargo")
                 .arg("install")
-                .arg("comment-annotations-cli")
+                .arg("canc")
                 .output();
             match install {
                 Ok(output) if output.status == Some(0) => {
@@ -83,7 +83,7 @@ impl CommentAnnotationsExtension {
                 }
                 Ok(output) => {
                     eprintln!(
-                        "canc: `cargo install comment-annotations-cli` exited with {:?}; stderr: {}",
+                        "canc: `cargo install canc` exited with {:?}; stderr: {}",
                         output.status,
                         String::from_utf8_lossy(&output.stderr)
                     );

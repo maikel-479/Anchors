@@ -1,5 +1,5 @@
-use comment_annotations_core::config::{InlineMode, Severity, UnknownTags};
-use comment_annotations_core::Config;
+use canc_core::config::{InlineMode, Severity, UnknownTags};
+use canc_core::Config;
 
 /// A config that declares one custom tag must keep the default tag set
 /// (merged by name), not replace it.

@@ -1,4 +1,4 @@
-use comment_annotations_core::{scan, Config, Lang, Severity, SpanKind};
+use canc_core::{scan, Config, Lang, Severity, SpanKind};
 use lsp_server::{Connection, Message, Request};
 use lsp_types::*;
 use std::collections::HashMap;
@@ -452,8 +452,8 @@ fn publish_diagnostics(conn: &Connection, server: &mut Server, uri: &Url) {
             continue;
         }
         let (line_s, char_s) =
-            comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.start);
-        let (line_e, char_e) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.end);
+            canc_core::scan::byte_to_lsp(&src, anchor.range.start);
+        let (line_e, char_e) = canc_core::scan::byte_to_lsp(&src, anchor.range.end);
         let severity = match sev {
             Severity::Hint => DiagnosticSeverity::HINT,
             Severity::Information => DiagnosticSeverity::INFORMATION,
@@ -535,8 +535,8 @@ fn semantic_tokens_for(server: &mut Server, uri: &Url) -> Vec<SemanticToken> {
     }
     let mut raw: Vec<Raw> = Vec::new();
     for anchor in &result.anchors {
-        let (line, col) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.start);
-        let (_, end_col) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.end);
+        let (line, col) = canc_core::scan::byte_to_lsp(&src, anchor.range.start);
+        let (_, end_col) = canc_core::scan::byte_to_lsp(&src, anchor.range.end);
         let len = end_col.saturating_sub(col);
         if len == 0 {
             continue;
@@ -560,8 +560,8 @@ fn semantic_tokens_for(server: &mut Server, uri: &Url) -> Vec<SemanticToken> {
         });
     }
     for span in &result.spans {
-        let (line, col) = comment_annotations_core::scan::byte_to_lsp(&src, span.range.start);
-        let (_, end_col) = comment_annotations_core::scan::byte_to_lsp(&src, span.range.end);
+        let (line, col) = canc_core::scan::byte_to_lsp(&src, span.range.start);
+        let (_, end_col) = canc_core::scan::byte_to_lsp(&src, span.range.end);
         let len = end_col.saturating_sub(col);
         if len == 0 {
             continue;
@@ -629,8 +629,8 @@ fn document_symbols_for(server: &mut Server, uri: &Url) -> Vec<DocumentSymbol> {
             continue;
         }
         let (line_s, char_s) =
-            comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.start);
-        let (line_e, char_e) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.end);
+            canc_core::scan::byte_to_lsp(&src, anchor.range.start);
+        let (line_e, char_e) = canc_core::scan::byte_to_lsp(&src, anchor.range.end);
         let range = Range {
             start: Position {
                 line: line_s,
@@ -730,9 +730,9 @@ fn workspace_symbols(server: &mut Server, query: &str) -> Vec<SymbolInformation>
                     continue;
                 };
                 let (line_s, char_s) =
-                    comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.start);
+                    canc_core::scan::byte_to_lsp(&src, anchor.range.start);
                 let (line_e, char_e) =
-                    comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.end);
+                    canc_core::scan::byte_to_lsp(&src, anchor.range.end);
                 let range = Range {
                     start: Position {
                         line: line_s,

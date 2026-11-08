@@ -1,5 +1,5 @@
 [package]
-name = "comment-annotations-core"
+name = "canc-core"
 version = "0.1.0"
 edition = "2021"
 description = "Core scanner for comment-tag annotations (NOTE/TODO/…), shared by the canc LSP server and CLI."
@@ -10,7 +10,7 @@ keywords = ["lsp", "zed", "comment", "annotations", "tree-sitter"]
 categories = ["development-tools", "parser"]
 
 [lib]
-name = "comment_annotations_core"
+name = "canc_core"
 path = "src/lib.rs"
 
 [dependencies]

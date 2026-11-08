@@ -24,7 +24,7 @@ the binary and the Zed extension WASM into `target/dist/`.
 ### CLI / LSP server (cargo)
 
 ```sh
-cargo install comment-annotations-cli   # installs `canc` into ~/.cargo/bin
+cargo install canc   # installs `canc` into ~/.cargo/bin
 canc serve                              # LSP over stdio (what Zed launches)
 canc anchors path/to/file.rs            # one-shot CLI scan
 ```
@@ -54,7 +54,7 @@ Then add the per-class colour rules from `canc init-zed` under
 
 The bundled Zed extension (`extension/`, package `canc-zed`, its own Cargo
 workspace) resolves the binary in this order: user `binary.path` override →
-`canc` on `PATH` → `cargo install comment-annotations-cli` (if cargo is
+`canc` on `PATH` → `cargo install canc` (if cargo is
 available) → GitHub release download fallback. To install the extension in
 Zed as a dev extension, use `extension/` as the source directory; build its
 WASM with `cargo build --target wasm32-wasip2 --release` inside `extension/`.

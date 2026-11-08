@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use comment_annotations_core::{scan, Config, Lang};
+use canc_core::{scan, Config, Lang};
 use ignore::WalkBuilder;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -95,19 +95,19 @@ pub fn run(paths: Vec<String>, format: OutputFormat, tag_filter: Option<String>,
                 if deny_set.iter().any(|d| d == &anchor.tag) {
                     any_denied = true;
                 }
-                let (line0, col0) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.start);
-                let (_line1, col1) = comment_annotations_core::scan::byte_to_lsp(&src, anchor.range.end);
+                let (line0, col0) = canc_core::scan::byte_to_lsp(&src, anchor.range.start);
+                let (_line1, col1) = canc_core::scan::byte_to_lsp(&src, anchor.range.end);
                 let spans_rec = if include_spans {
                     let mut v = Vec::new();
                     for s in &result.spans {
                         // Only spans on same line as anchor? Include all spans in file? For per-anchor, include spans on that line
-                        let (sline, scol) = comment_annotations_core::scan::byte_to_lsp(&src, s.range.start);
+                        let (sline, scol) = canc_core::scan::byte_to_lsp(&src, s.range.start);
                         if sline == anchor.line {
-                            let (_, ecol) = comment_annotations_core::scan::byte_to_lsp(&src, s.range.end);
+                            let (_, ecol) = canc_core::scan::byte_to_lsp(&src, s.range.end);
                             let kind = match s.kind {
-                                comment_annotations_core::SpanKind::Strong => "strong",
-                                comment_annotations_core::SpanKind::Emphasis => "emphasis",
-                                comment_annotations_core::SpanKind::Code => "code",
+                                canc_core::SpanKind::Strong => "strong",
+                                canc_core::SpanKind::Emphasis => "emphasis",
+                                canc_core::SpanKind::Code => "code",
                             };
                             v.push(SpanRecord { line: sline + 1, column: scol + 1, end_column: ecol, kind: kind.to_string() });
                         }
@@ -123,8 +123,8 @@ pub fn run(paths: Vec<String>, format: OutputFormat, tag_filter: Option<String>,
                     tag: anchor.tag.clone(),
                     class: anchor.class.clone(),
                     form: match anchor.form {
-                        comment_annotations_core::TagForm::Conventional => "conventional",
-                        comment_annotations_core::TagForm::Delimited => "delimited",
+                        canc_core::TagForm::Conventional => "conventional",
+                        canc_core::TagForm::Delimited => "delimited",
                     }.to_string(),
                     meta: anchor.meta.clone(),
                     text: anchor.text.clone(),
@@ -135,15 +135,15 @@ pub fn run(paths: Vec<String>, format: OutputFormat, tag_filter: Option<String>,
             // (e.g. emphasis in a plain comment) so they are not dropped.
             if include_spans {
                 for s in &result.spans {
-                    let (sline, scol) = comment_annotations_core::scan::byte_to_lsp(&src, s.range.start);
+                    let (sline, scol) = canc_core::scan::byte_to_lsp(&src, s.range.start);
                     if anchor_lines_for_spans.contains(&sline) {
                         continue;
                     }
-                    let (_, ecol) = comment_annotations_core::scan::byte_to_lsp(&src, s.range.end);
+                    let (_, ecol) = canc_core::scan::byte_to_lsp(&src, s.range.end);
                     let kind = match s.kind {
-                        comment_annotations_core::SpanKind::Strong => "strong",
-                        comment_annotations_core::SpanKind::Emphasis => "emphasis",
-                        comment_annotations_core::SpanKind::Code => "code",
+                        canc_core::SpanKind::Strong => "strong",
+                        canc_core::SpanKind::Emphasis => "emphasis",
+                        canc_core::SpanKind::Code => "code",
                     };
                     let span_text = src[s.range.clone()].to_string();
                     records.push(AnchorRecord {
