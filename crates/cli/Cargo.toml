@@ -2,6 +2,12 @@
 name = "comment-annotations-cli"
 version = "0.1.0"
 edition = "2021"
+description = "canc — comment-tag annotation LSP server and CLI (semantic tokens, diagnostics, symbols)."
+license = "MIT"
+repository = "https://github.com/maikel-479/Anchors"
+homepage = "https://github.com/maikel-479/Anchors"
+keywords = ["lsp", "zed", "comment", "annotations", "cli"]
+categories = ["development-tools", "command-line-utilities"]
 
 [[bin]]
 name = "canc"

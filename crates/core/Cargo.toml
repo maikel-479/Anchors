@@ -2,6 +2,12 @@
 name = "comment-annotations-core"
 version = "0.1.0"
 edition = "2021"
+description = "Core scanner for comment-tag annotations (NOTE/TODO/…), shared by the canc LSP server and CLI."
+license = "MIT"
+repository = "https://github.com/maikel-479/Anchors"
+homepage = "https://github.com/maikel-479/Anchors"
+keywords = ["lsp", "zed", "comment", "annotations", "tree-sitter"]
+categories = ["development-tools", "parser"]
 
 [lib]
 name = "comment_annotations_core"

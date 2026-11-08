@@ -16,7 +16,48 @@ The server attaches to languages Zed already has (`C`, `C++`, `Rust`,
 cargo build --release
 ```
 
-Binary: `target/release/canc`
+Binary: `target/release/canc`. `cargo run -p xtask -- build` builds both
+the binary and the Zed extension WASM into `target/dist/`.
+
+## Install & run
+
+### CLI / LSP server (cargo)
+
+```sh
+cargo install comment-annotations-cli   # installs `canc` into ~/.cargo/bin
+canc serve                              # LSP over stdio (what Zed launches)
+canc anchors path/to/file.rs            # one-shot CLI scan
+```
+
+From source, the same binary is at `target/release/canc`.
+
+### Zed
+
+Point Zed at the binary with:
+
+```json
+// ~/.config/zed/settings.json
+{
+  "lsp": {
+    "canc": {
+      "binary": { "path": "/home/you/.cargo/bin/canc" }
+    }
+  },
+  "languages": {
+    "Rust": { "language_servers": ["rust-analyzer", "canc", "..."] }
+  }
+}
+```
+
+Then add the per-class colour rules from `canc init-zed` under
+`"global_lsp_settings": { "semantic_token_rules": […] }`.
+
+The bundled Zed extension (`extension/`, package `canc-zed`, its own Cargo
+workspace) resolves the binary in this order: user `binary.path` override →
+`canc` on `PATH` → `cargo install comment-annotations-cli` (if cargo is
+available) → GitHub release download fallback. To install the extension in
+Zed as a dev extension, use `extension/` as the source directory; build its
+WASM with `cargo build --target wasm32-wasip2 --release` inside `extension/`.
 
 ## CLI
 

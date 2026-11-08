@@ -60,6 +60,46 @@ impl CommentAnnotationsExtension {
             self.cached_binary_path = Some(path.clone());
             return Ok(path);
         }
+
+        // Cargo-install fallback: if `cargo` is on PATH, try installing the
+        // server binary from crates.io. This makes local use work before any
+        // GitHub release exists — no downloads, no archives, just
+        // `cargo install comment-annotations-cli`.
+        if worktree.which("cargo").is_some() {
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::Downloading,
+            );
+            let install = zed::process::Command::new("cargo")
+                .arg("install")
+                .arg("comment-annotations-cli")
+                .output();
+            match install {
+                Ok(output) if output.status == Some(0) => {
+                    if let Some(path) = worktree.which("canc") {
+                        self.cached_binary_path = Some(path.clone());
+                        return Ok(path);
+                    }
+                }
+                Ok(output) => {
+                    eprintln!(
+                        "canc: `cargo install comment-annotations-cli` exited with {:?}; stderr: {}",
+                        output.status,
+                        String::from_utf8_lossy(&output.stderr)
+                    );
+                }
+                Err(err) => {
+                    eprintln!("canc: cargo install failed to spawn: {err}");
+                }
+            }
+            // Fall through to the GitHub-release path below if the install
+            // failed or the binary still isn't visible on PATH.
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::None,
+            );
+        }
+
         // Download fallback: use the pinned release asset. Adjust REPO and
         // VERSION when publishing. The (os, arch) mapping follows
         // codebook-zed / zed-todo-highlight (musl for Linux).
