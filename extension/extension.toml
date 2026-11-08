@@ -19,8 +19,9 @@ host = "objects.githubusercontent.com"
 path = ["**"]
 
 [grammars.comment]
-repository = "file:///home/maikel/Projects/zed-projects/anchors/grammars/comment"
+repository = "https://github.com/maikel-479/Anchors"
 rev = "main"
+path = "grammars/comment"
 
 [language_servers.canc]
 languages = ["C", "C++", "Rust", "Python", "Go", "JavaScript", "TypeScript", "TSX", "HTML", "CSS", "JSON"]
