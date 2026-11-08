@@ -4,7 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = ["maikel"]
 description = "Comment tags and inline emphasis, styled by you."
-repository = "https://github.com/example/canc"
+repository = "https://github.com/maikel-479/Anchors"
 
 # Permit the git-release download fallback used by the language-server
 # resolver. Release assets redirect to these hosts.

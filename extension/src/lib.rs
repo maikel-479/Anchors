@@ -103,7 +103,7 @@ impl CommentAnnotationsExtension {
         // Download fallback: use the pinned release asset. Adjust REPO and
         // VERSION when publishing. The (os, arch) mapping follows
         // codebook-zed / zed-todo-highlight (musl for Linux).
-        const REPO: &str = "example/canc"; // TODO: real owner/repo on publish
+        const REPO: &str = "maikel-479/Anchors";
         const VERSION: &str = "0.1.0";
         let (os, arch) = zed::current_platform();
         let (target, exe_suffix) = match (os, arch) {
