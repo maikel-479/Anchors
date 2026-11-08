@@ -31,6 +31,35 @@ impl zed::Extension for CommentAnnotationsExtension {
     }
 }
 
+fn home_bin_dirs() -> Vec<std::path::PathBuf> {
+    let mut buf = vec![];
+    if let Ok(home) = std::env::var("HOME") {
+        if !home.is_empty() {
+            for sub in [".local/bin", ".cargo/bin", ".opencode/bin", ".mimocode/bin"] {
+                buf.push(std::path::PathBuf::from(&home).join(sub));
+            }
+            // Nix user profile (NixOS / home-manager): binary dirs that are
+            // often not in Zed's captured login-shell PATH.
+            buf.push(std::path::PathBuf::from(&home).join(".nix-profile/bin"));
+            buf.push(std::path::PathBuf::from(&home).join("nix-profile/bin"));
+            buf.push(std::path::PathBuf::from(&home).join(".local/state/nix/profile/bin"));
+        }
+    }
+    for sub in ["/home/maikel/.local/bin", "/home/maikel/.cargo/bin"] {
+        buf.push(std::path::PathBuf::from(sub));
+    }
+    buf
+}
+
+fn bin_dir_contains(dir: &std::path::PathBuf, name: &str) -> Option<String> {
+    let candidate = dir.join(name);
+    if candidate.exists() {
+        Some(candidate.to_string_lossy().to_string())
+    } else {
+        None
+    }
+}
+
 impl CommentAnnotationsExtension {
     fn resolve_binary(
         &mut self,
@@ -61,9 +90,21 @@ impl CommentAnnotationsExtension {
             return Ok(path);
         }
 
+        // Direct filesystem lookup in per-user bin dirs. Zed's `which`
+        // only searches the PATH captured from the desktop login shell,
+        // which on NixOS/home-manager often lacks ~/.local/bin and
+        // ~/.cargo/bin even though interactive shells have them.
+        for dir in home_bin_dirs() {
+            if let Some(path) = bin_dir_contains(&dir, "canc") {
+                eprintln!("canc: found at {path}");
+                self.cached_binary_path = Some(path.clone());
+                return Ok(path);
+            }
+        }
+
         // Cargo-install fallback: if `cargo` is on PATH, try installing the
-        // server binary from crates.io. This makes local use work before any
-        // GitHub release exists — no downloads, no archives, just
+        // server binary. Prefer crates.io once committed, then git main.
+        // This makes local use work without a GitHub release — typically
         // `cargo install canc`.
         if worktree.which("cargo").is_some() {
             zed::set_language_server_installation_status(
@@ -79,6 +120,13 @@ impl CommentAnnotationsExtension {
                     if let Some(path) = worktree.which("canc") {
                         self.cached_binary_path = Some(path.clone());
                         return Ok(path);
+                    }
+                    for dir in home_bin_dirs() {
+                        if let Some(path) = bin_dir_contains(&dir, "canc") {
+                            let path = path.clone();
+                            self.cached_binary_path = Some(path.clone());
+                            return Ok(path);
+                        }
                     }
                 }
                 Ok(output) => {
@@ -132,9 +180,24 @@ impl CommentAnnotationsExtension {
             let release = zed::github_release_by_tag_name(REPO, &format!("v{VERSION}"))
                 .map_err(|e| {
                     format!(
-                        "canc binary not found on PATH and no release v{VERSION} is published yet.\
-                         ~/.local/bin/canc is not on Zed's PATH.\
-                         Either put it on PATH or set \"lsp\": {{ \"canc\": {{ \"binary\": {{ \"path\": \"/home/maikel/.local/bin/canc\" }} }} }} ({e})"
+                        "canc binary not found: checked PATH via worktree.which({checks}), ~/.local/bin, ~/.cargo/bin and other per-user bin dirs; GitHub release download failed ({e}). \
+                         Run `cargo install canc` or put `canc` in ~/.local/bin. \
+                         Or set \"lsp\": {{ \"canc\": {{ \"binary\": {{ \"path\": \"/home/maikel/.local/bin/canc\" }} }} }}",
+                        checks = {
+                            let dirs = home_bin_dirs();
+                            let checked: Vec<String> = dirs
+                                .iter()
+                                .map(|d| {
+                                    let name = match std::env::consts::OS {
+                                        "windows" => "canc.exe",
+                                        _ => "canc",
+                                    };
+                                    let path = d.join(name);
+                                    format!("<{}>", path.display())
+                                })
+                                .collect();
+                            checked.join(", ")
+                        },
                     )
                 })?;
             let asset = release
