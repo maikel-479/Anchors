@@ -122,6 +122,42 @@ fn language_detection() {
 }
 
 #[test]
+fn underscore_emphasis() {
+    let src = "// NOTE: this is _underlined_ and *italic*\n";
+    let cfg = Config::default();
+    let result = scan(Lang::Cpp, src, &cfg);
+    let kinds: Vec<_> = result.spans.iter().map(|s| s.kind).collect();
+    assert!(kinds.contains(&SpanKind::Underscore), "kinds={kinds:?}");
+    assert!(kinds.contains(&SpanKind::Emphasis), "kinds={kinds:?}");
+    let us = result
+        .spans
+        .iter()
+        .find(|s| s.kind == SpanKind::Underscore)
+        .unwrap();
+    assert_eq!(&src[us.range.clone()], "_underlined_");
+}
+
+#[test]
+fn underscore_not_in_snake_case() {
+    // Underscores inside identifiers (snake_case) must not start emphasis.
+    let src = "// NOTE: use snake_case_here and _ok_ done\n";
+    let cfg = Config::default();
+    let result = scan(Lang::Cpp, src, &cfg);
+    let us_count = result
+        .spans
+        .iter()
+        .filter(|s| s.kind == SpanKind::Underscore)
+        .count();
+    assert_eq!(us_count, 1, "spans: {:?}", result.spans);
+    assert_eq!(
+        &src[result.spans[0].range.clone()],
+        "_ok_",
+        "spans: {:?}",
+        result.spans
+    );
+}
+
+#[test]
 fn config_defaults_match_plan() {
     let cfg = Config::default();
     assert_eq!(cfg.syntax.conventional, true);

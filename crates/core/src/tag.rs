@@ -101,6 +101,11 @@ pub enum SpanKind {
     Strong,
     Emphasis,
     Code,
+    /// `_..._` (CommonMark alternative to `*...*`). Distinct from
+    /// `Emphasis` so the two spellings can be styled differently
+    /// (e.g. `*...*` italic, `_..._` upright+underlined) when a theme
+    /// already italicizes comments.
+    Underscore,
 }
 
 #[derive(Debug, Clone)]
@@ -226,6 +231,49 @@ pub fn scan_inline(region: &str, region_abs_start: usize, cfg: &Config) -> Vec<S
                         });
                         j = close_end;
                         continue;
+                    }
+                }
+            }
+            j += 1;
+            continue;
+        }
+        if region[j..].starts_with('_') {
+            // single _ — CommonMark's other emphasis delimiter.
+            // Underscores inside words (snake_case) must NOT start emphasis:
+            // require the opener to NOT be preceded by an alphanumeric and
+            // the closer to NOT be followed by one.
+            let preceded_by_alnum = j > 0
+                && region[..j].chars().next_back().is_some_and(|c| c.is_alphanumeric());
+            if !preceded_by_alnum {
+                if let Some(close_rel) = region[j + 1..].find('_') {
+                    let close_start = j + 1 + close_rel;
+                    if region[close_start..].starts_with("__") {
+                        j += 1;
+                        continue;
+                    }
+                    let close_end = close_start + 1;
+                    let followed_by_alnum = region[close_end..]
+                        .chars()
+                        .next()
+                        .is_some_and(|c| c.is_alphanumeric());
+                    if !followed_by_alnum
+                        && !in_code(region_abs_start + close_start, region_abs_start + close_end)
+                    {
+                        let content = &region[j + 1..close_start];
+                        if !content.is_empty()
+                            && !content.starts_with(|c: char| c.is_whitespace())
+                            && !content.ends_with(|c: char| c.is_whitespace())
+                            && !content.contains('\n')
+                            && !content.contains('_')
+                            && !content.contains('`')
+                        {
+                            spans.push(Span {
+                                range: (region_abs_start + j)..(region_abs_start + close_end),
+                                kind: SpanKind::Underscore,
+                            });
+                            j = close_end;
+                            continue;
+                        }
                     }
                 }
             }

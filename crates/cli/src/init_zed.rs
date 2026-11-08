@@ -53,6 +53,14 @@ pub fn generate_rules(cfg: &Config) -> Vec<serde_json::Value> {
         "font_style": "italic",
         "underline": true
     }));
+    // `_..._` is deliberately upright: `font_style: normal` undoes the
+    // theme's comment italics, so it reads as underlined-only text.
+    rules.push(serde_json::json!({
+        "token_type": "comment",
+        "token_modifiers": ["underscore"],
+        "font_style": "normal",
+        "underline": true
+    }));
     rules.push(serde_json::json!({
         "token_type": "comment",
         "token_modifiers": ["code"],

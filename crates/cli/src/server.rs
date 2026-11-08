@@ -31,7 +31,7 @@ struct Server {
 }
 
 /// Build the modifier legend: every configured tag class in config order
-/// (deduped, across the given configs), then `strong`/`emphasis`/`code`.
+/// (deduped, across the given configs), then `strong`/`emphasis`/`underscore`/`code`.
 fn legend_modifiers(configs: &[Config]) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for cfg in configs {
@@ -41,7 +41,7 @@ fn legend_modifiers(configs: &[Config]) -> Vec<String> {
             }
         }
     }
-    for modifier in ["strong", "emphasis", "code"] {
+    for modifier in ["strong", "emphasis", "underscore", "code"] {
         if !out.iter().any(|c| c == modifier) {
             out.push(modifier.into());
         }
@@ -179,6 +179,17 @@ pub fn run() {
         )),
         workspace_symbol_provider: Some(OneOf::Left(true)),
         document_symbol_provider: Some(OneOf::Left(true)),
+        completion_provider: Some(CompletionOptions {
+            resolve_provider: Some(false),
+            trigger_characters: Some(vec![
+                "*".into(),
+                "_".into(),
+                "`".into(),
+                ":".into(),
+                "/".into(),
+            ]),
+            ..Default::default()
+        }),
         ..Default::default()
     };
 
@@ -290,6 +301,29 @@ fn handle_request(conn: &Connection, server: &mut Server, req: Request) {
         let symbols = document_symbols_for(server, &params.text_document.uri);
         let result = DocumentSymbolResponse::Nested(symbols);
         let resp = lsp_server::Response::new_ok(req.id, result);
+        let _ = conn.sender.send(Message::Response(resp));
+        return;
+    }
+    if req.method == "textDocument/completion" {
+        let params: CompletionParams =
+            serde_json::from_value(req.params).unwrap_or(CompletionParams {
+                text_document_position: TextDocumentPositionParams {
+                    text_document: TextDocumentIdentifier {
+                        uri: Url::parse("file:///tmp").unwrap(),
+                    },
+                    position: Position { line: 0, character: 0 },
+                },
+                context: None,
+                work_done_progress_params: Default::default(),
+                partial_result_params: Default::default(),
+            });
+        let items = completions_for(
+            server,
+            &params.text_document_position.text_document.uri,
+            &params.text_document_position.position,
+        );
+        let response = CompletionResponse::Array(items);
+        let resp = lsp_server::Response::new_ok(req.id, response);
         let _ = conn.sender.send(Message::Response(resp));
         return;
     }
@@ -570,6 +604,7 @@ fn semantic_tokens_for(server: &mut Server, uri: &Url) -> Vec<SemanticToken> {
             SpanKind::Strong => "strong",
             SpanKind::Emphasis => "emphasis",
             SpanKind::Code => "code",
+            SpanKind::Underscore => "underscore",
         };
         let mod_idx = server
             .token_modifiers
@@ -755,4 +790,128 @@ fn workspace_symbols(server: &mut Server, query: &str) -> Vec<SymbolInformation>
         }
     }
     out
+}
+
+// --- Completion ----------------------------------------------------------
+
+fn completion_item(
+    label: impl Into<String>,
+    detail: impl Into<String>,
+    kind: CompletionItemKind,
+    insert_text: Option<String>,
+    insert_text_format: Option<InsertTextFormat>,
+) -> CompletionItem {
+    CompletionItem {
+        label: label.into(),
+        label_details: None,
+        kind: Some(kind),
+        detail: Some(detail.into()),
+        documentation: None,
+        deprecated: None,
+        preselect: None,
+        sort_text: None,
+        filter_text: None,
+        insert_text,
+        insert_text_format,
+        insert_text_mode: None,
+        text_edit: None,
+        additional_text_edits: None,
+        command: None,
+        data: None,
+        tags: None,
+        commit_characters: None,
+    }
+}
+
+/// Completion candidates for comment markers. Only offered when the cursor
+/// sits on a comment line (so Zed doesn't show them for code); the client
+/// filters by the typed prefix automatically.
+fn completions_for(server: &mut Server, uri: &Url, position: &Position) -> Vec<CompletionItem> {
+    let Some(src) = server.docs.get(uri).cloned() else {
+        return vec![];
+    };
+    let lang = lang_for_doc(server, uri);
+    if lang == Lang::Unknown {
+        return vec![];
+    }
+    // Current line up to the cursor, UTF-16 -> byte via byte_to_lsp inverse
+    // is overkill; we only need the text before the cursor for gating.
+    let line_no = position.line as usize;
+    let line_start = if line_no == 0 {
+        0
+    } else {
+        src.as_bytes()
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| **b == b'\n')
+            .nth(line_no - 1)
+            .map(|(i, _)| i + 1)
+            .unwrap_or(src.len())
+    };
+    let line_end = src[line_start..]
+        .find('\n')
+        .map(|i| line_start + i)
+        .unwrap_or(src.len());
+    let line = &src[line_start..line_end];
+    // Gate: must look like we're inside a comment.
+    let is_comment_line = line.contains("//")
+        || line.contains("/*")
+        || line.contains("<!--")
+        || line.trim_start().starts_with('#')
+        || line.trim_start().starts_with('*');
+    if !is_comment_line {
+        return vec![];
+    }
+
+    let config = config_for_doc(server, uri);
+    let mut items = Vec::new();
+
+    // Configured tags: `NOTE:` (snippet: marker + space + cursor).
+    for tag in &config.tags {
+        let label = format!("{}:", tag.name);
+        items.push(completion_item(
+            label.clone(),
+            format!("class {} · severity {}", tag.class, tag.severity.as_str()),
+            CompletionItemKind::KEYWORD,
+            Some(format!("{label} $0")),
+            Some(InsertTextFormat::SNIPPET),
+        ));
+        // TODO(user): form.
+        if tag.name == "TODO" {
+            items.push(completion_item(
+                format!("{}($0): ", tag.name),
+                "tag with user",
+                CompletionItemKind::KEYWORD,
+                Some(format!("{}($0): ", tag.name)),
+                Some(InsertTextFormat::SNIPPET),
+            ));
+        }
+        // Delimited form =TAG=.
+        let delim = format!("={}=", tag.name);
+        items.push(completion_item(
+            delim.clone(),
+            "delimited tag",
+            CompletionItemKind::KEYWORD,
+            Some(format!("{delim} $0")),
+            Some(InsertTextFormat::SNIPPET),
+        ));
+    }
+
+    // Inline markdown spans as snippets.
+    for (label, detail, snippet) in [
+        ("**…**", "strong", "**$0**"),
+        ("*…*", "emphasis (italic)", "*$0*"),
+        ("_…_", "underscore (upright + underlined)", "_$0_"),
+        ("`…`", "code", "`$0`"),
+    ] {
+        items.push(completion_item(
+            label,
+            detail,
+            CompletionItemKind::SNIPPET,
+            Some(snippet.to_string()),
+            Some(InsertTextFormat::SNIPPET),
+        ));
+    }
+
+    items
 }

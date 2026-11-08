@@ -108,6 +108,7 @@ pub fn run(paths: Vec<String>, format: OutputFormat, tag_filter: Option<String>,
                                 canc_core::SpanKind::Strong => "strong",
                                 canc_core::SpanKind::Emphasis => "emphasis",
                                 canc_core::SpanKind::Code => "code",
+                                canc_core::SpanKind::Underscore => "underscore",
                             };
                             v.push(SpanRecord { line: sline + 1, column: scol + 1, end_column: ecol, kind: kind.to_string() });
                         }
@@ -144,6 +145,7 @@ pub fn run(paths: Vec<String>, format: OutputFormat, tag_filter: Option<String>,
                         canc_core::SpanKind::Strong => "strong",
                         canc_core::SpanKind::Emphasis => "emphasis",
                         canc_core::SpanKind::Code => "code",
+                        canc_core::SpanKind::Underscore => "underscore",
                     };
                     let span_text = src[s.range.clone()].to_string();
                     records.push(AnchorRecord {
