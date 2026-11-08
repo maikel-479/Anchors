@@ -38,6 +38,12 @@ class = "hack"
 severity = "information"
 symbol = true
 
+[[tags]]
+name = "PERF"
+class = "perf"
+severity = "hint"
+symbol = true
+
 [[overrides]]
 paths = ["vendor/**", "third_party/**"]
 enabled = false
