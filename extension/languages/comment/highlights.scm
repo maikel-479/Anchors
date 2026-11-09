@@ -21,3 +21,8 @@
   (name) @keyword.comment.warn
   (user)? @keyword.comment.warn.user)
   (#match? @keyword.comment.warn "^(HACK)$"))
+
+((tag
+  (name) @keyword.comment.info
+  (user)? @keyword.comment.info.user)
+  (#match? @keyword.comment.info "^(PERF)$"))
