@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/maikel-479/Anchors"
 homepage = "https://github.com/maikel-479/Anchors"
 keywords = ["lsp", "zed", "comment", "annotations", "tree-sitter"]
-categories = ["development-tools", "parser"]
+categories = ["development-tools", "text-processing"]
 
 [lib]
 name = "canc_core"
