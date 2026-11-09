@@ -60,6 +60,44 @@ fn bin_dir_contains(dir: &std::path::PathBuf, name: &str) -> Option<String> {
     }
 }
 
+/// Where `cargo install` puts a newly installed binary, derived strictly
+/// from the environment — not from `PATH`. This is the deterministic path
+/// we return after a successful install, so we never need to find it again
+/// via `which()` (which shares the same broken desktop PATH).
+fn cargo_home_bin() -> Option<String> {
+    let exe_name = if std::env::consts::OS == "windows" {
+        "canc.exe"
+    } else {
+        "canc"
+    };
+    if let Ok(cargo_home) = std::env::var("CARGO_HOME") {
+        if !cargo_home.is_empty() {
+            let p = std::path::PathBuf::from(&cargo_home)
+                .join("bin")
+                .join(exe_name);
+            return Some(p.to_string_lossy().to_string());
+        }
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        if !home.is_empty() {
+            let p = std::path::PathBuf::from(&home)
+                .join(".cargo")
+                .join("bin")
+                .join(exe_name);
+            return Some(p.to_string_lossy().to_string());
+        }
+    }
+    // Best-effort fallback for machines where the sandbox hides $HOME.
+    match std::env::consts::OS {
+        "windows" => Some(format!(
+            "C:\\Users\\{}\\AppData\\Local\\.cargo\\bin\\{}",
+            std::env::var("USERNAME").unwrap_or_else(|_| "user".into()),
+            exe_name
+        )),
+        _ => Some(format!("/home/maikel/.cargo/bin/{}", exe_name)),
+    }
+}
+
 impl CommentAnnotationsExtension {
     fn resolve_binary(
         &mut self,
@@ -117,6 +155,13 @@ impl CommentAnnotationsExtension {
                 .output();
             match install {
                 Ok(output) if output.status == Some(0) => {
+                    // Deterministic: cargo put it in its CARGO_HOME/bin
+                    // regardless of which() and Zed's PATH.
+                    if let Some(deterministic) = cargo_home_bin() {
+                        eprintln!("canc: cargo install -> {deterministic}");
+                        self.cached_binary_path = Some(deterministic.clone());
+                        return Ok(deterministic);
+                    }
                     if let Some(path) = worktree.which("canc") {
                         self.cached_binary_path = Some(path.clone());
                         return Ok(path);
