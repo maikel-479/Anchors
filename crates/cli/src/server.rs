@@ -164,14 +164,9 @@ pub fn run() {
             SemanticTokensOptions {
                 work_done_progress_options: WorkDoneProgressOptions::default(),
                 legend: SemanticTokensLegend {
-                    // Deliberately custom names, NOT `keyword`/`comment`:
-                    // those collide with theme/clangd captures under
-                    // `semantic_tokens: combined` and bleed purple/cyan
-                    // onto unrelated code (`while`, `number`). `tag`/`span`
-                    // isolate canc's tokens (see init-zed rules).
                     token_types: vec![
-                        SemanticTokenType::new("tag"),
-                        SemanticTokenType::new("span"),
+                        SemanticTokenType::new("keyword"),
+                        SemanticTokenType::new("comment"),
                     ],
                     token_modifiers: token_modifiers
                         .iter()
@@ -671,7 +666,7 @@ fn document_symbols_for(server: &mut Server, uri: &Url) -> Vec<DocumentSymbol> {
         let (line_s, char_s) =
             canc_core::scan::byte_to_lsp(&src, anchor.range.start);
         let (line_e, char_e) = canc_core::scan::byte_to_lsp(&src, anchor.range.end);
-        let selection_range = Range {
+        let range = Range {
             start: Position {
                 line: line_s,
                 character: char_s,
@@ -679,32 +674,6 @@ fn document_symbols_for(server: &mut Server, uri: &Url) -> Vec<DocumentSymbol> {
             end: Position {
                 line: line_e,
                 character: char_e,
-            },
-        };
-        // `range` = the whole comment line (Zed expects the enclosing scope,
-        // not the tag itself, when filtering/restyling outline rows).
-        // `selection_range` stays tight on the tag so "go to symbol" lands
-        // exactly on `NOTE:`.
-        let line_start = src[..anchor.range.start]
-            .rfind('\n')
-            .map(|i| i + 1)
-            .unwrap_or(0);
-        let line_end = src[anchor.range.end..]
-            .find('\n')
-            .map(|i| anchor.range.end + i)
-            .unwrap_or(src.len());
-        let (range_start_line, range_start_char) =
-            canc_core::scan::byte_to_lsp(&src, line_start);
-        let (range_end_line, range_end_char) =
-            canc_core::scan::byte_to_lsp(&src, line_end);
-        let range = Range {
-            start: Position {
-                line: range_start_line,
-                character: range_start_char,
-            },
-            end: Position {
-                line: range_end_line,
-                character: range_end_char,
             },
         };
         // Name is the bare tag (with user) so Zed's `highlights_from_buffer`
@@ -723,7 +692,7 @@ fn document_symbols_for(server: &mut Server, uri: &Url) -> Vec<DocumentSymbol> {
             tags: None,
             deprecated: None,
             range,
-            selection_range,
+            selection_range: range,
             children: None,
         });
     }

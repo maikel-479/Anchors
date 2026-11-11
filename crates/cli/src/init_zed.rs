@@ -33,14 +33,14 @@ pub fn generate_rules(cfg: &Config) -> Vec<serde_json::Value> {
     for tag in &cfg.tags {
         let color = color_for_class(&tag.class);
         rules.push(serde_json::json!({
-            "token_type": "tag",
+            "token_type": "keyword",
             "token_modifiers": [tag.class],
             "foreground_color": color,
             "font_weight": "bold"
         }));
     }
     rules.push(serde_json::json!({
-        "token_type": "span",
+        "token_type": "comment",
         "token_modifiers": ["strong"],
         "font_weight": "bold"
     }));
@@ -48,7 +48,7 @@ pub fn generate_rules(cfg: &Config) -> Vec<serde_json::Value> {
     // so emphasis also gets an underline — remove it if your theme's comments
     // are not italic and the underline feels noisy.
     rules.push(serde_json::json!({
-        "token_type": "span",
+        "token_type": "comment",
         "token_modifiers": ["emphasis"],
         "font_style": "italic",
         "underline": true
@@ -56,13 +56,13 @@ pub fn generate_rules(cfg: &Config) -> Vec<serde_json::Value> {
     // `_..._` is deliberately upright: `font_style: normal` undoes the
     // theme's comment italics, so it reads as underlined-only text.
     rules.push(serde_json::json!({
-        "token_type": "span",
+        "token_type": "comment",
         "token_modifiers": ["underscore"],
         "font_style": "normal",
         "underline": true
     }));
     rules.push(serde_json::json!({
-        "token_type": "span",
+        "token_type": "comment",
         "token_modifiers": ["code"],
         "background_color": "#292e42"
     }));

@@ -264,13 +264,6 @@ pub fn default_tags() -> Vec<TagConfig> {
             symbol: true,
             aliases: vec![],
         },
-        TagConfig {
-            name: "PERF".into(),
-            class: "perf".into(),
-            severity: Severity::Hint,
-            symbol: true,
-            aliases: vec![],
-        },
     ]
 }
 
